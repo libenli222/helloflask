@@ -6,6 +6,8 @@
     :license: MIT, see LICENSE for more details.
 """
 import os
+
+# 引用兼容性处理
 try:
     from urlparse import urlparse, urljoin
 except ImportError:
@@ -16,16 +18,28 @@ from jinja2.utils import generate_lorem_ipsum
 from flask import Flask, make_response, request, redirect, url_for, abort, session, jsonify
 
 app = Flask(__name__)
+# print('************')
+# print(app.url_map)
+# print('************')
 app.secret_key = os.getenv('SECRET_KEY', 'secret string')
+print('************')
+print('****', app.secret_key)
+print('************')
 
 
 # get name value from query string and cookie
 @app.route('/')
 @app.route('/hello')
 def hello():
+    print('=============')
+    print('request.args---', request.args)
+    print('request.cookies---', request.cookies)
+    print('request.data---', request.data)
+    print('request.endpoint---', request.endpoint)
+    print('=============')
     name = request.args.get('name')
     if name is None:
-        name = request.cookies.get('name', 'Human')
+        name = request.cookies.get('username', 'hhhhh')
     response = '<h1>Hello, %s!</h1>' % escape(name)  # escape name to avoid XSS
     # return different response according to the user's authentication status
     if 'logged_in' in session:
@@ -129,7 +143,7 @@ body: Don't forget the party!
 @app.route('/set/<name>')
 def set_cookie(name):
     response = make_response(redirect(url_for('hello')))
-    response.set_cookie('name', name)
+    response.set_cookie('username', name)
     return response
 
 
@@ -201,10 +215,19 @@ def bar():
 @app.route('/do-something')
 def do_something():
     # do something here
-    return redirect_back()
+    # 方法一：之前访问的路径
+    # request.referrer属性如下使用，有些时候会被浏览器等串改or接缺省值
+    # return redirect(request.referrer or url_for("hello"))
+    # 方法二：从来的视图那里返回值url_for里埋的next点，这里取出来用也加缺省值
+    # url_ = request.args.get("next",url_for("hello"))
+    # return redirect(url_)
+    # 也可以一二合并，先取next和referrer如果拿不到填缺省值
+    # 例子在redirect_back函数
+    return redirect_back()  # 自定义的
 
 
 def is_safe_url(target):
+    print('target', target)
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and \
@@ -218,3 +241,9 @@ def redirect_back(default='hello', **kwargs):
         if is_safe_url(target):
             return redirect(target)
     return redirect(url_for(default, **kwargs))
+
+
+# 摆放位置很总要，放最开始app.route都没加载所以没啥玩意
+print('************')
+print(app.url_map)
+print('************')

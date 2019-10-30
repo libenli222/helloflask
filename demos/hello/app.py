@@ -24,15 +24,30 @@ def say_hello():
     return '<h1>Hello, Flask!</h1>'
 
 
+# 设置默认值方法一
 # dynamic route, URL variable default
-@app.route('/greet', defaults={'name': 'Programmer'})
 @app.route('/greet/<name>')
+@app.route('/greet', defaults={'name': 'Programmer'})
+# @app.route('/greet/<name>')
 def greet(name):
     return '<h1>Hello, %s!</h1>' % name
 
 
+# 设置默认值方法二
+@app.route('/groot')
+@app.route('/groot/<name>')
+def groot(name='grlibenli'):
+    return "<h1>hello,%s!<h1>" % name
+
+
 # custom flask cli command
-@app.cli.command()
+# 创建自定义命令,默认函数名hello，
+# 可以在装饰器中修改nohello
+@app.cli.command('nohello')
 def hello():
     """Just say hello."""
     click.echo('Hello, Human!')
+
+# 不通过黑屏终端执行程序or设置 edit configurations
+# if __name__ == "__main__":
+#     app.run()
