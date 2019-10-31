@@ -7,6 +7,7 @@
 """
 import os
 from flask import Flask, render_template, flash, redirect, url_for, Markup
+from flask import session
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'secret string')
@@ -78,6 +79,10 @@ def watchlist_with_static():
 @app.route('/flash')
 def just_flash():
     flash('I am flash, who is looking for me?')
+    flash(u'我⚡️')  # python2.x 汉字要加u
+    # flash 存储在session中key是_flashes
+    print(session.items())
+    print(session.get('_flashes'))
     return redirect(url_for('index'))
 
 

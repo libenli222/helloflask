@@ -12,10 +12,13 @@
 </head>
 <body>
 <nav>
-    <ul><li><a href="{{ url_for('index') }}">Home</a></li></ul>
+    <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+    </ul>
 </nav>
 
 <main>
+{#    在模版中获取flash中的内容，通过此函数#}
     {% for message in get_flashed_messages() %}
         <div class="alert">{{ message }}</div>
     {% endfor %}
@@ -29,6 +32,7 @@
         </small>
     {% endblock %}
 </footer>
-{% block scripts %}{% endblock %}
+{% block scripts %}
+{% endblock %}
 </body>
 </html>
