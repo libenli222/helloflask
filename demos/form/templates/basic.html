@@ -4,6 +4,7 @@
 <h2>Basic Form</h2>
 
 <form method="post">
+    {{ form.hidden_tag() }}
     {{ form.csrf_token }}
     {{ form.username.label }}<br>
     {{ form.username }}<br>

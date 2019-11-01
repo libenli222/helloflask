@@ -23,6 +23,7 @@ app.jinja_env.trim_blocks = True
 app.jinja_env.lstrip_blocks = True
 
 # Custom config
+print('***',app.root_path,"888")
 app.config['UPLOAD_PATH'] = os.path.join(app.root_path, 'uploads')
 app.config['ALLOWED_EXTENSIONS'] = ['png', 'jpg', 'jpeg', 'gif']
 
@@ -58,6 +59,7 @@ def html():
     return render_template('pure_html.html')
 
 
+# 使用扩展表单类实现的前端表单提交页面
 @app.route('/basic', methods=['GET', 'POST'])
 def basic():
     form = LoginForm()
@@ -73,6 +75,8 @@ def bootstrap():
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
+        # 效果同上面
+        # username = request.form['username']
         flash('Welcome home, %s!' % username)
         return redirect(url_for('index'))
     return render_template('bootstrap.html', form=form)
@@ -114,6 +118,7 @@ def upload():
     if form.validate_on_submit():
         f = form.photo.data
         filename = random_filename(f.filename)
+        # 储存到本地
         f.save(os.path.join(app.config['UPLOAD_PATH'], filename))
         flash('Upload success.')
         session['filenames'] = [filename]
