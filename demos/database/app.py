@@ -15,6 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, TextAreaField
 from wtforms.validators import DataRequired
+from flask_migrate import Migrate
 
 # SQLite URI compatible
 WIN = sys.platform.startswith('win')
@@ -31,11 +32,13 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secret string')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', prefix + os.path.join(app.root_path, 'data.db'))
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+# 实例化 包 flask-sqlalchemy提供的 SQLAlchemy 类
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
-# handlers
+# handlers 在上下文管理器中注册相应变量，
+# 这样脚本操作中就不需要倒入，直接拿来用
 @app.shell_context_processor
 def make_shell_context():
     return dict(db=db, Note=Note, Author=Author, Article=Article, Writer=Writer, Book=Book,
@@ -53,7 +56,7 @@ def initdb(drop):
     click.echo('Initialized database.')
 
 
-# Forms
+# Forms 表单类
 class NewNoteForm(FlaskForm):
     body = TextAreaField('Body', validators=[DataRequired()])
     submit = SubmitField('Save')
@@ -85,10 +88,11 @@ def index():
     return render_template('index.html', notes=notes, form=form)
 
 
+# 表单类的视图函数
 @app.route('/new', methods=['GET', 'POST'])
 def new_note():
     form = NewNoteForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit():  # 验证通过并提交,返回布尔值
         body = form.body.data
         note = Note(body=body)
         db.session.add(note)
@@ -129,6 +133,8 @@ class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), unique=True)
     phone = db.Column(db.String(20))
+    # 二、定义关系属性，
+    # 这个东西在数据库的表中并无显示
     articles = db.relationship('Article')  # collection
 
     def __repr__(self):
@@ -139,6 +145,7 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50), index=True)
     body = db.Column(db.Text)
+    # 一、建立外键，这样查作者的时候添加了一个属性article可以返回所有相关的article对象
     author_id = db.Column(db.Integer, db.ForeignKey('author.id'))
 
     def __repr__(self):
@@ -254,7 +261,7 @@ class Song(db.Model):
         return '<Song %r>' % self.name
 
 
-# cascade
+# cascade 级联操作
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(50))
